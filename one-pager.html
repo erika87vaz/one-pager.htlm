@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Visual One-Pager (S.P.I.N.)</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for high visibility and touch targets */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e; /* Dark background for high contrast */
+            color: #f4f4f9; /* Light text */
+        }
+        /* Buttons are extra large touch targets */
+        .spin-button {
+            transition: all 0.2s;
+            cursor: pointer;
+            user-select: none;
+            border: 4px solid #66fcf1; /* Teal border for visibility */
+            min-height: 120px; /* Ensure big buttons */
+        }
+        .spin-button.selected {
+            background-color: #66fcf1; /* Teal fill when selected */
+            color: #1a1a2e; /* Dark text on selection */
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(102, 252, 241, 0.8);
+        }
+        .section-title {
+            border-bottom: 4px solid #66fcf1;
+            padding-bottom: 0.5rem;
+        }
+        /* Hide text in print mode for a clean one-pager printout */
+        @media print {
+            .no-print { display: none; }
+            body { background-color: white; color: black; }
+            .summary-container { box-shadow: none; border: 1px solid black; }
+            .summary-container h3, .summary-container h4 { color: #1a1a2e !important; border-bottom: 1px solid #1a1a2e; }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-teal': '#66fcf1',
+                        'secondary-dark': '#2e2e4a',
+                    },
+                }
+            }
+        }
+
+        // Global object to store data - All sections now use Sets for multiple selections
+        const onePagerData = {
+            name: '',
+            strengths: new Set(),
+            preferences: new Set(),
+            interests: new Set(),
+            needs: new Set(),
+        };
+
+        /**
+         * Toggles the selection state of a button and updates the data model.
+         * @param {string} section - 'strengths', 'preferences', 'interests', or 'needs'
+         * @param {string} value - The text value of the selection
+         * @param {HTMLElement} element - The button element
+         */
+        function toggleSelection(section, value, element) {
+            if (onePagerData[section].has(value)) {
+                onePagerData[section].delete(value);
+                element.classList.remove('selected');
+            } else {
+                onePagerData[section].add(value);
+                element.classList.add('selected');
+            }
+            updateSummary();
+        }
+
+        /**
+         * Updates the text inputs in the data model (only for the student name field, used by support staff).
+         */
+        function updateName(value) {
+            onePagerData.name = value;
+            updateSummary();
+        }
+
+        /**
+         * Generates and displays the final summary for viewing or printing.
+         */
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summary-output');
+            const date = new Date().toLocaleDateString();
+            
+            const strengthList = Array.from(onePagerData.strengths).map(s => `• ${s}`).join('\n');
+            const preferenceList = Array.from(onePagerData.preferences).map(p => `• ${p}`).join('\n');
+            const interestList = Array.from(onePagerData.interests).map(i => `• ${i}`).join('\n');
+            const needList = Array.from(onePagerData.needs).map(n => `• ${n}`).join('\n');
+
+            summaryDiv.innerHTML = `
+                <div class="summary-container p-6 bg-gray-900 rounded-xl shadow-lg">
+                    <h3 class="text-3xl font-bold mb-4 text-primary-teal">✨ My S.P.I.N. One-Pager</h3>
+                    <p class="text-xl mb-4"><strong>Name:</strong> ${onePagerData.name || 'Student Name'}</p>
+                    <p class="text-md mb-6"><strong>Date:</strong> ${date}</p>
+                    
+                    <div class="space-y-6">
+                        <div class="p-4 rounded-xl border-2 border-primary-teal">
+                            <h4 class="text-xl font-semibold mb-2 text-primary-teal">S - Strengths (What I am good at) 💪</h4>
+                            <pre class="whitespace-pre-wrap text-base">${strengthList || 'No strengths selected yet.'}</pre>
+                        </div>
+                        <div class="p-4 rounded-xl border-2 border-primary-teal">
+                            <h4 class="text-xl font-semibold mb-2 text-primary-teal">P - Preferences (How I like to learn) 💖</h4>
+                            <pre class="whitespace-pre-wrap text-base">${preferenceList || 'No preferences selected yet.'}</pre>
+                        </div>
+                        <div class="p-4 rounded-xl border-2 border-primary-teal">
+                            <h4 class="text-xl font-semibold mb-2 text-primary-teal">I - Interests (What I love to do) 🤩</h4>
+                            <pre class="whitespace-pre-wrap text-base">${interestList || 'No interests selected yet.'}</pre>
+                        </div>
+                        <div class="p-4 rounded-xl border-2 border-primary-teal">
+                            <h4 class="text-xl font-semibold mb-2 text-primary-teal">N - Needs (What support helps me succeed) 🧠</h4>
+                            <pre class="whitespace-pre-wrap text-base">${needList || 'No needs selected yet.'}</pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Clears all fields and the data model.
+         */
+        function clearForm() {
+            document.getElementById('one-pager-form').reset();
+            onePagerData.strengths.clear();
+            onePagerData.preferences.clear();
+            onePagerData.interests.clear();
+            onePagerData.needs.clear();
+            onePagerData.name = '';
+            // Reset button classes
+            document.querySelectorAll('.spin-button').forEach(btn => btn.classList.remove('selected'));
+            updateSummary();
+        }
+
+        // Initialize summary on load
+        window.onload = updateSummary;
+    </script>
+</head>
+<body class="p-4 sm:p-8">
+    
+    <div class="max-w-4xl mx-auto space-y-8">
+        <!-- HEADER & INSTRUCTIONS -->
+        <header class="text-center p-6 bg-secondary-dark rounded-3xl shadow-2xl no-print">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-primary-teal mb-2">My Visual One-Pager (S.P.I.N.)</h1>
+            <p class="text-lg text-gray-300">Tap the pictures that are true about me. A helper can enter my name.</p>
+        </header>
+
+        <!-- Form Container -->
+        <form id="one-pager-form" class="space-y-8">
+            <!-- Name Input (For Support Staff) -->
+            <div class="p-6 bg-secondary-dark rounded-xl shadow-xl no-print">
+                <label for="student-name" class="block text-2xl font-bold mb-4 text-primary-teal">
+                    My Name (Helper Enters):
+                </label>
+                <input 
+                    type="text" 
+                    id="student-name" 
+                    placeholder="Enter Student Name" 
+                    oninput="updateName(this.value)"
+                    class="w-full p-4 text-2xl rounded-lg bg-gray-700 text-white placeholder-gray-400 border-2 border-primary-teal focus:border-white focus:outline-none"
+                    maxlength="50"
+                >
+            </div>
+
+            <!-- 1. STRENGTHS -->
+            <section class="p-6 bg-secondary-dark rounded-xl shadow-xl">
+                <h2 class="section-title text-3xl font-bold mb-6 text-primary-teal">1. S - My Strengths 💪</h2>
+                <p class="text-xl text-gray-300 mb-4 no-print">I am **good at** (Tap all that apply)</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('strengths', 'Good Helper', this)">
+                        <span class="text-5xl mb-1">🤝</span> Helper
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('strengths', 'Good Listener/Follows Directions', this)">
+                        <span class="text-5xl mb-1">👂</span> Listener
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('strengths', 'Follows Visual Routines', this)">
+                        <span class="text-5xl mb-1">📅</span> Follows Routine
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('strengths', 'Happy/Positive Attitude', this)">
+                        <span class="text-5xl mb-1">😄</span> Happy
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('strengths', 'Good with Technology/Devices', this)">
+                        <span class="text-5xl mb-1">💻</span> Tech User
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('strengths', 'Works Independently/Alone', this)">
+                        <span class="text-5xl mb-1">👤</span> Works Alone
+                    </button>
+                </div>
+            </section>
+
+            <!-- 2. PREFERENCES -->
+            <section class="p-6 bg-secondary-dark rounded-xl shadow-xl">
+                <h2 class="section-title text-3xl font-bold mb-6 text-primary-teal">2. P - My Preferences 💖</h2>
+                <p class="text-xl text-gray-300 mb-4 no-print">I **like** to work (Tap all that apply)</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('preferences', 'Quiet Area (No Noise)', this)">
+                        <span class="text-5xl mb-1">🤫</span> Quiet Area
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('preferences', 'Hands-On Tasks (Building/Sorting)', this)">
+                        <span class="text-5xl mb-1">🖐️</span> Hands-On
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('preferences', 'With Music/Headphones', this)">
+                        <span class="text-5xl mb-1">🎧</span> With Music
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('preferences', 'First Work, Then Break (First-Then)', this)">
+                        <span class="text-5xl mb-1">➡️</span> First-Then
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('preferences', 'Near a Window/Light', this)">
+                        <span class="text-5xl mb-1">☀️</span> Near Light
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('preferences', 'Working with a Friend/Peer', this)">
+                        <span class="text-5xl mb-1">🧑‍🤝‍🧑</span> With a Friend
+                    </button>
+                </div>
+            </section>
+
+            <!-- 3. INTERESTS -->
+            <section class="p-6 bg-secondary-dark rounded-xl shadow-xl">
+                <h2 class="section-title text-3xl font-bold mb-6 text-primary-teal">3. I - My Interests 🤩</h2>
+                <p class="text-xl text-gray-300 mb-4 no-print">I **love** to do or talk about (Tap all that apply)</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('interests', 'Animals/Pets', this)">
+                        <span class="text-5xl mb-1">🐶</span> Animals
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('interests', 'Food/Snacks', this)">
+                        <span class="text-5xl mb-1">🍎</span> Food/Snacks
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('interests', 'Puzzles/Games', this)">
+                        <span class="text-5xl mb-1">🧩</span> Games
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('interests', 'Movies/Cartoons', this)">
+                        <span class="text-5xl mb-1">🎬</span> Movies
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('interests', 'Music/Singing', this)">
+                        <span class="text-5xl mb-1">🎶</span> Music
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('interests', 'Outdoor Play/Sports', this)">
+                        <span class="text-5xl mb-1">⚽</span> Outdoors
+                    </button>
+                </div>
+            </section>
+
+            <!-- 4. NEEDS -->
+            <section class="p-6 bg-secondary-dark rounded-xl shadow-xl">
+                <h2 class="section-title text-3xl font-bold mb-6 text-primary-teal">4. N - My Needs 🧠</h2>
+                <p class="text-xl text-gray-300 mb-4 no-print">What **support** helps me succeed? (Tap all that apply)</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('needs', 'Need Wait Time (Count to 5)', this)">
+                        <span class="text-5xl mb-1">🛑</span> Wait Time
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('needs', 'Need a Fidget Toy/Tool', this)">
+                        <span class="text-5xl mb-1">🔗</span> Fidget Toy
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('needs', 'Need Picture Directions/Visuals', this)">
+                        <span class="text-5xl mb-1">🖼️</span> Picture Directions
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('needs', 'Need a Break When Upset', this)">
+                        <span class="text-5xl mb-1">🧘</span> Break Time
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('needs', 'Need a Calm Voice from Staff', this)">
+                        <span class="text-5xl mb-1">🤫</span> Calm Voice
+                    </button>
+                    <button type="button" class="spin-button p-4 rounded-xl text-xl font-semibold flex flex-col items-center justify-center bg-[#1a1a2e]" onclick="toggleSelection('needs', 'Need Help to Start Work', this)">
+                        <span class="text-5xl mb-1">👉</span> Start Help
+                    </button>
+                </div>
+            </section>
+        </form>
+
+        <!-- SUMMARY & ACTIONS -->
+        <section class="p-6 bg-[#1a1a2e] rounded-xl shadow-2xl space-y-4">
+            <h2 class="section-title text-3xl font-bold text-white mb-6 no-print">Summary & Share</h2>
+            <div id="summary-output" class="p-4 bg-gray-900 rounded-xl">
+                <!-- Summary content will be injected here by JavaScript -->
+            </div>
+            
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 no-print">
+                <button 
+                    onclick="window.print()" 
+                    class="flex-1 p-4 bg-green-500 hover:bg-green-600 text-white text-xl font-bold rounded-xl shadow-lg transition duration-200"
+                >
+                    🖨️ Print or Save as PDF
+                </button>
+                <button 
+                    onclick="clearForm()" 
+                    class="flex-1 p-4 bg-red-500 hover:bg-red-600 text-white text-xl font-bold rounded-xl shadow-lg transition duration-200"
+                >
+                    🔄 Clear All Fields
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-sm text-gray-500 p-4 no-print">
+            Inspired by the I'm Determined Project (Virginia Department of Education).
+        </footer>
+    </div>
+</body>
+</html>
